@@ -77,8 +77,11 @@ Material:
     - _Steps: 60
     - _UVSec: 0
     - _ZWrite: 1
-    - _minDistance: 0.01
+    - _iterations: 20
+    - _minDistance: 0.05
+    - _scale: 2
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _upVector: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []

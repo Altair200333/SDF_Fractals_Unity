@@ -2,7 +2,9 @@ Shader "Custom/volumeSh"
 {
 	Properties
 	{
-		_minDistance("Distance", Int) = 0.01
+		_minDistance("Distance", Float) = 0.01
+		_scale("Scale", Float) = 2
+		_iterations("Iterations", int) = 10
 	}
 
 		SubShader
@@ -49,7 +51,8 @@ Shader "Custom/volumeSh"
 				}
 
 				float _minDistance;
-				float4 _upVector;
+				float _scale;
+				int _iterations;
 
 				#define NUM_STEPS 100
 
@@ -70,11 +73,30 @@ Shader "Custom/volumeSh"
 				};
 
 				//disntance function
-				float getDistance(float3 pos)
+				float getDistance2(float3 pos)
 				{
 					return max(length(pos - float3(0.5f, 0.5f, 0.5f)) - 0.3, 0);
 				}
+				float getDistance(float3 z)
+				{
+					float3 a1 = float3(1, 1, 1);
+					float3 a2 = float3(-1, -1, 1);
+					float3 a3 = float3(1, -1, -1);
+					float3 a4 = float3(-1, 1, -1);
+					float3 c;
+					int n = 0;
+					float dist, d;
+					while (n < _iterations) {
+						c = a1; dist = length(z - a1);
+						d = length(z - a2); if (d < dist) { c = a2; dist = d; }
+						d = length(z - a3); if (d < dist) { c = a3; dist = d; }
+						d = length(z - a4); if (d < dist) { c = a4; dist = d; }
+						z = _scale * z - c * (_scale - 1.0);
+						n++;
+					}
 
+					return length(z) * pow(_scale, float(-n));
+				}
 				bool inBounds(float3 currPos)
 				{
 					float tol = 0.01f;
