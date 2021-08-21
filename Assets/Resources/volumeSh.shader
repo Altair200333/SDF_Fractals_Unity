@@ -59,6 +59,14 @@ Shader "Custom/volumeSh"
 					return color;
 				}
 
+				struct Hit
+				{
+					bool hit;
+					int steps;
+					float distance;
+					
+					float3 pos;
+				};
 
 				//disntance function
 				float getDistance(float3 pos)
@@ -66,12 +74,6 @@ Shader "Custom/volumeSh"
 					return max(length(pos - float3(0.5f, 0.5f, 0.5f)) - 0.15, 0);
 				}
 
-				struct Hit
-				{
-					bool hit;
-					float3 pos;
-				};
-				
 				bool inBounds(float3 currPos)
 				{
 					float tol = 0.01f;
@@ -88,16 +90,20 @@ Shader "Custom/volumeSh"
 					Hit hit;
 
 					float3 currentPos = start;
-
+					int steps = 0;
+					float totalDistance = 0;
 					for (uint iStep = 0; iStep < NUM_STEPS; iStep++)
 					{
 						float distance = getDistance(currentPos);
-
 						currentPos += direction * distance;
+						steps++;
+						totalDistance += distance;
 						if (distance < _minDistance)
 						{
 							hit.hit = true;
 							hit.pos = currentPos;
+							hit.steps = steps;
+							hit.distance = totalDistance;
 							return hit;
 						}
 
@@ -109,19 +115,26 @@ Shader "Custom/volumeSh"
 					hit.pos = currentPos;
 					return hit;
 				}
-				
+
+				float3 computeNormal(float3 position, float3 direction)
+				{
+					return float3(0, 0, 0);
+					//return normalize(float3(distance(position + direction.x) - distance(position - direction.x),
+					//	distance(position + direction.y) - distance(position - direction.y),
+					//	distance(position + direction.z) - distance(position - direction.z)));
+				}
 				fixed4 frag(v2f i) : SV_Target
 				{
 					fixed4 col = float4(0, 0, 0, 0.0);// float4(i.local.x, i.local.x, i.local.x, 0.2f);
 
 					const float3 direction = -normalize(ObjSpaceViewDir(float4(i.local, 0.0f)));
 					const float3 start = i.local + float3(0.5f, 0.5f, 0.5f);
-					Hit hit = traverse(start, direction);
+
+					const Hit hit = traverse(start, direction);
 					if(hit.hit)
 					{
-						col = float4(1, 0, 0, 1);
+						col = float4((float)hit.distance, 0, 0, 1);
 					}
-					float3 currPos = start;
 
 					return col;
 				}
