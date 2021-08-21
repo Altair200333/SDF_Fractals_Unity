@@ -3,7 +3,6 @@ Shader "Custom/volumeSh"
 	Properties
 	{
 		_minDistance("Distance", Int) = 0.01
-
 	}
 
 		SubShader
@@ -50,6 +49,8 @@ Shader "Custom/volumeSh"
 				}
 
 				float _minDistance;
+				float4 _upVector;
+
 				#define NUM_STEPS 100
 
 				float4 BlendUnder(float4 color, float4 newColor)
@@ -71,7 +72,7 @@ Shader "Custom/volumeSh"
 				//disntance function
 				float getDistance(float3 pos)
 				{
-					return max(length(pos - float3(0.5f, 0.5f, 0.5f)) - 0.15, 0);
+					return max(length(pos - float3(0.5f, 0.5f, 0.5f)) - 0.3, 0);
 				}
 
 				bool inBounds(float3 currPos)
@@ -116,12 +117,12 @@ Shader "Custom/volumeSh"
 					return hit;
 				}
 
-				float3 computeNormal(float3 position, float3 direction)
+				float3 computeNormal(float3 position, float3 right, float3 up, float3 forward)
 				{
-					return float3(0, 0, 0);
-					//return normalize(float3(distance(position + direction.x) - distance(position - direction.x),
-					//	distance(position + direction.y) - distance(position - direction.y),
-					//	distance(position + direction.z) - distance(position - direction.z)));
+					//return float3(0, 0, 0);
+					return normalize(float3(getDistance(position + right) - getDistance(position - right),
+						getDistance(position + up) - getDistance(position - forward),
+						getDistance(position + forward) - getDistance(position - forward)));
 				}
 				fixed4 frag(v2f i) : SV_Target
 				{
@@ -133,7 +134,8 @@ Shader "Custom/volumeSh"
 					const Hit hit = traverse(start, direction);
 					if(hit.hit)
 					{
-						col = float4((float)hit.distance, 0, 0, 1);
+						float3 normal = computeNormal(hit.pos, float3(1, 0, 0), float3(0, 1, 0), float3(0, 0, 1));
+						col = float4(abs(normal),1);// float4((float)0.4 / hit.distance, 0, 0, 1);
 					}
 
 					return col;
