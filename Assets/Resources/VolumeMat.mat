@@ -77,8 +77,8 @@ Material:
     - _Steps: 60
     - _UVSec: 0
     - _ZWrite: 1
-    - _iterations: 20
-    - _minDistance: 0.05
+    - _iterations: 10
+    - _minDistance: 0.003
     - _scale: 2
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

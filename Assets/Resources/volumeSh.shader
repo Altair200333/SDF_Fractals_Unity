@@ -13,7 +13,7 @@ Shader "Custom/volumeSh"
 			{
 				"Queue" = "Transparent" "Render" = "Transparent" "IgnoreProjector" = "True"
 			}
-
+			Cull Off
 			ZWrite Off
 			Blend SrcAlpha OneMinusSrcAlpha
 
@@ -29,6 +29,7 @@ Shader "Custom/volumeSh"
 				struct appdata
 				{
 					float4 vertex : POSITION;
+					float3 normal : NORMAL;
 				};
 
 				struct v2f
@@ -37,6 +38,7 @@ Shader "Custom/volumeSh"
 					float3 worldPos : TEXCOORD0;
 					float3 local : TEXCOORD1;
 					float3 camPos : TEXCOORD2;
+					float3 normal : TEXCOORD3;
 				};
 
 				v2f vert(appdata v)
@@ -46,7 +48,8 @@ Shader "Custom/volumeSh"
 					o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 					o.vertex = UnityObjectToClipPos(v.vertex);
 					o.local = v.vertex;
-					o.camPos = mul(unity_WorldToObject, _WorldSpaceCameraPos);
+					o.camPos = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1.0));
+					o.normal = v.normal;
 					return o;
 				}
 
@@ -151,8 +154,9 @@ Shader "Custom/volumeSh"
 					fixed4 col = float4(0, 0, 0, 0.0);// float4(i.local.x, i.local.x, i.local.x, 0.2f);
 
 					const float3 direction = -normalize(ObjSpaceViewDir(float4(i.local, 0.0f)));
-					const float3 start = i.local + float3(0.5f, 0.5f, 0.5f);
-
+					float3 start = i.local + float3(0.5f, 0.5f, 0.5f);
+					if (inBounds(i.camPos + float3(0.5f, 0.5f, 0.5f)))
+						start = i.camPos + float3(0.5f, 0.5f, 0.5f);
 					const Hit hit = traverse(start, direction);
 					if(hit.hit)
 					{
